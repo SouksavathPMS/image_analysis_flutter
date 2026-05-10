@@ -46,6 +46,11 @@ class Analysis extends _$Analysis {
       final model = GenerativeModel(
         model: 'gemini-1.5-flash',
         apiKey: const String.fromEnvironment('GEMINI_API_KEY'),
+        systemInstruction: Content.system(
+          'You are a helpful and creative AI assistant in a Build with AI workshop. '
+          'Your goal is to analyze images accurately and provide engaging, informative responses. '
+          'Always keep your tone professional yet friendly.',
+        ),
       );
 
       // 2. Prepare the content (Prompt + Image)
