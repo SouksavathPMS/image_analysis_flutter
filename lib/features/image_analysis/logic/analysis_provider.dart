@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 part 'analysis_provider.g.dart';
 
@@ -29,7 +31,7 @@ class Analysis extends _$Analysis {
     state = state.copyWith(prompt: prompt);
   }
 
-  /// Simulates analyzing the image with Gemini
+  /// Analyzes the image using Gemini API
   Future<void> analyzeImage() async {
     if (state.imagePath == null) {
       state = state.copyWith(response: 'Please select an image first.');
@@ -38,15 +40,36 @@ class Analysis extends _$Analysis {
 
     state = state.copyWith(isLoading: true, response: '');
 
-    // TODO: Add Gemini API logic here
-    // For now, we simulate a delay to show the loading indicator
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // 1. Initialize the model
+      // TODO: In a real app, don't hardcode your API key!
+      final model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: const String.fromEnvironment('GEMINI_API_KEY'),
+      );
 
-    state = state.copyWith(
-      isLoading: false,
-      response:
-          'This is a placeholder response. Attendees will implement Gemini logic here!',
-    );
+      // 2. Prepare the content (Prompt + Image)
+      final bytes = await File(state.imagePath!).readAsBytes();
+      final content = [
+        Content.multi([
+          TextPart(state.prompt),
+          DataPart('image/jpeg', bytes),
+        ])
+      ];
+
+      // 3. Generate content
+      final response = await model.generateContent(content);
+      
+      state = state.copyWith(
+        isLoading: false,
+        response: response.text ?? 'No response from Gemini.',
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        response: 'Error: $e',
+      );
+    }
   }
 }
 
