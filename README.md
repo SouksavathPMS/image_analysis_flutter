@@ -1,4 +1,4 @@
-# Build with AI: Image Analysis Workshop 🚀
+# Build with AI: Seeing the World through AI: Image Analysis in Flutter 🚀
 
 Welcome to the **"Seeing the World through AI: Image Analysis in Flutter"** workshop! In this session, you will learn how to build a smart Flutter application that uses the **Google Gemini Multimodal Vision API** to analyze images and answer questions about them.
 
