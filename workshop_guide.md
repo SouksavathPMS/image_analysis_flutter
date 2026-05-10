@@ -1,4 +1,4 @@
-# 🎓 Workshop Guide: Image Analysis with Gemini & Flutter
+# 🎓 Workshop Guide: Seeing the World through AI: Image Analysis in Flutter
 
 Welcome to the hands-on portion of our workshop! This guide will walk you through the three main steps to transform this starter UI into a fully functional AI-powered application.
 
