@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -6,10 +10,25 @@ part 'analysis_provider.g.dart';
 @riverpod
 class Analysis extends _$Analysis {
   final ImagePicker _picker = ImagePicker();
+  late String apiKey;
+  late String model;
 
   @override
   AnalysisState build() {
+    apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+    model = 'gemini-2.5-flash';
+
     return const AnalysisState();
+  }
+
+  Future<bool> checkConnectivity() async {
+    try {
+      final result =
+          await InternetAddress.lookup('generativelanguage.googleapis.com');
+      return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false; // DNS failed — network or region issue
+    }
   }
 
   /// Picks an image from the specified source (camera or gallery)
@@ -36,17 +55,49 @@ class Analysis extends _$Analysis {
       return;
     }
 
+    if (apiKey.isEmpty) {
+      state =
+          state.copyWith(response: 'Please set your API key in the .env file.');
+      return;
+    }
+
     state = state.copyWith(isLoading: true, response: '');
 
-    // TODO: Add Gemini API logic here
-    // For now, we simulate a delay to show the loading indicator
-    await Future.delayed(const Duration(seconds: 2));
-
-    state = state.copyWith(
-      isLoading: false,
-      response:
-          'This is a placeholder response. Attendees will implement Gemini logic here!',
-    );
+    try {
+      final result = await checkConnectivity();
+      if (!result) {
+        state =
+            state.copyWith(response: 'Please check your internet connection.');
+        return;
+      }
+      final generativeModel = GenerativeModel(
+        model: model,
+        apiKey: apiKey,
+        systemInstruction: Content.system(
+          'You are a helpful and creative AI assistant in a Build with AI workshop. '
+          'Your goal is to analyze images accurately and provide engaging, informative responses. '
+          'Always keep your tone professional yet friendly.',
+        ),
+      );
+      final bytes = await File(state.imagePath!).readAsBytes();
+      final content = [
+        Content.multi([
+          TextPart(state.prompt),
+          DataPart('image/jpeg', bytes),
+        ])
+      ];
+      final response = await generativeModel.generateContent(content);
+      state = state.copyWith(
+        isLoading: false,
+        response: response.text ?? 'No response from Gemini.',
+      );
+      
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        response: 'Error: $e',
+      );
+    }
   }
 }
 
