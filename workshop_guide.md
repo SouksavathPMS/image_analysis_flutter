@@ -47,7 +47,7 @@ Replace the simulated delay with the real Gemini API call. You will need to:
 
 > **Implementation Hint:**
 > ```dart
-> final model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: 'YOUR_API_KEY');
+> final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: 'YOUR_API_KEY');
 > final content = [
 >   Content.multi([
 >     TextPart(state.prompt),
